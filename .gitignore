@@ -1,0 +1,49 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# PyCharm
+.idea/
+
+# Misc
+*.egg
+*.egg-info
+.eggs/
+.coverage
+coverage.xml
+build
+
+# Directories to ignore
+# pinn/modulus/examples/diffusion/outputs/
+# pinn/torchphysics/examples/diffusion/lightning_logs/
+# pinn/examples/diffusion-interface/outputs/
+# pinn/examples/advection-diffusion/outputs/
+# pinn/Problem_a/outputs/
+# pinn/Problem_a_t/outputs/
+# pinn/Problem_a_3d_t/outputs/
+# pinn/Problem_b/outputs/
+# */lightning_logs
+
+**/outputs/*
+**/lightning_logs/*
+
+gan/long-video-gan/outputs/
+
+# saved outputs
+*outp*
+*2024*
+*2025*
+*.pt
+
+# slurm outputs
+slurm-*
