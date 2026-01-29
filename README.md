@@ -1,10 +1,20 @@
 
 ## Learning Transient Convective Heat Transfer with Geometry Aware World Models 
 
+**Abstract.**  
+Partial differential equation (PDE) simulations are fundamental to engineering and physics but are often computationally prohibitive for real-time applications. While generative AI offers a promising avenue for surrogate modeling, standard video generation architectures lack the specific control and data compatibility required for physical simulations. This paper introduces a geometry aware world model architecture, derived from a video generation architecture (LongVideoGAN), designed to learn transient physics. We introduce two key architecture elements: (1) a twofold conditioning mechanism incorporating global physical parameters and local geometric masks, and (2) an architectural adaptation to support arbitrary channel dimensions, moving beyond standard RGB constraints. We evaluate this approach on a 2D transient computational fluid dynamics (CFD) problem involving convective heat transfer from buoyancy-driven flow coupled to a heat flow in a solid structure. We demonstrate that the conditioned model successfully reproduces complex temporal dynamics and spatial correlations of the training data. Furthermore, we assess the model's generalization capabilities on unseen geometric configurations, highlighting both its potential for controlled simulation synthesis and current limitations in spatial precision for out-of-distribution samples.
+
+**Code overview.**  
+This repository provides the official PyTorch implementation of the method
+described above. It extends LongVideoGAN with geometry aware conditioning and
+supports dataset preparation, training, evaluation, and video generation for
+transient convective heat transfer simulations.
+
+
 ## Requirements (same as **LongVideoGAN**)
 
 * Linux and Windows are supported, but we recommend Linux for performance and compatibility reasons.
-* 1+ high-end NVIDIA GPU for synthesis and 8+ GPUs for training. We have done all testing and development using V100 and A100 GPUs.
+* * 1+ high-end NVIDIA GPU for synthesis. All experiments in the paper were conducted on A100 GPUs.
 * CUDA toolkit 11.1 or later.
 * GCC 7 or later (Linux) or Visual Studio (Windows) compilers.  Recommended GCC version depends on CUDA version, see for example [CUDA 11.4 system requirements](https://docs.nvidia.com/cuda/archive/11.4.1/cuda-installation-guide-linux/index.html#system-requirements).
 * Python libraries: see [environment.yml](./environment.yml) for exact library dependencies.  You can use the following commands with Miniconda3 to create and activate your LongVideoGAN Python environment:
@@ -29,7 +39,7 @@ Note that to generate very long videos without running out of memory, we recomme
 
 ## Preparing datasets  (see also README of **LongVideoGAN**)
 
-To create your own tensor dataset, see the `dataset_tools` directory. Make sure you have set up the required Python environment before creating the dataset. Then run the `dataset_tools/make_datase_from_tensors` script. See the example below, and make sure to run the script separately for each shard/partition.
+To create your own tensor dataset, see the `dataset_tools` directory. Make sure you have set up the required Python environment before creating the dataset. Then run the `dataset_tools/make_dataset_from_tensors` script. See the example below, and make sure to run the script separately for each shard/partition.
 
 ```.bash
 python -m dataset_tools.make_dataset_from_tensors SOURCE_VIDEOS_DIR OUTPUT_DATASET_DIR \
@@ -42,22 +52,21 @@ Setting `--partition=0 --num-partitions=10` (default) in the above example will 
 
 You can train new models using `train_lres.py` to train the low resolution network and `train_sres.py` to train the super-resolution network. We used 2 high-end NVIDIA GPUs for training. If that is not possible or you run out of memory, you can try increasing the number of gradient accumulation steps (`--grad-accum`), which will train more slowly but use less memory. You may also experiment with lowering the batch size (`--batch`), although this may worsen results. For multi-GPU training, we use [torchrun](https://pytorch.org/docs/stable/elastic/run.html).
 
-Distributed low-resolution training over 2 GPUs on an examplary simulation dataset:
+Distributed low-resolution training over 2 GPUs on an exemplary simulation dataset:
 ```.bash
 python -m torch.distributed.run --nnodes=1 --nproc_per_node=2 train_lres.py \
     --outdir=runs/lres --dataset=datasets/simulation --batch=8 --grad-accum=2 --gamma=1.0 
 ```
 
-Distributed super-resolution training over 2 GPUs on an examplary simulation dataset:
+Distributed super-resolution training over 2 GPUs on an exemplary simulation dataset:
 ```.bash
 python -m torch.distributed.run --nnodes=1 --nproc_per_node=2 train_sres.py \
     --outdir=runs/sres --dataset=datasets/simulation --batch=8 --grad-accum=1 --gamma=1.0
 ```
 
-Model checkpoints, random generated video samples, and metrics will be logged in subdirectory of `--outdir` created for each run. Setting `--outdir` is optional and will default to the `runs/lres` and `runs/sres` directories shown above. We only support the most crucial arguments through the command line. Rather than rely on passing all arguments through the command line or reading a separate configuration file, other training settings can be modified directly in the train file, and the settings will be logged under the run subdirectory to `config.json` for each training run.
+Model checkpoints, random generated video samples, and metrics will be logged in a subdirectory of `--outdir` created for each run. Setting `--outdir` is optional and will default to the `runs/lres` and `runs/sres` directories shown above. We only support the most crucial arguments through the command line. Rather than rely on passing all arguments through the command line or reading a separate configuration file, other training settings can be modified directly in the train file, and the settings will be logged under the run subdirectory to `config.json` for each training run.
 
-In `dataset.py` conditioning information has to be processed as, e.g., "lres_cond=dict(cond_sp=lres_cond_sp, cond_num=lres_cond_num)", such that `train_lres.py` can pass the information to the GAN.
-
+In `dataset.py`, conditioning information must be assembled into dictionaries (e.g., `lres_cond=dict(cond_sp=lres_cond_sp, cond_num=lres_cond_num)`) so that `train_lres.py` can correctly pass the conditioning signals to the GAN.
 
 We use [W&B](https://wandb.ai/) for logging and recommend setting up an account to track experiments. If you prefer not to use W&B and have not already logged into a W&B account, select "Don't visualize my results" when prompted after launching a training run.
 
@@ -76,7 +85,8 @@ and applies to this repository.
 @inproceedings{doganay2026gawm,
     title={Learning Transient Convective Heat Transfer with Geometry Aware World Models},
     author={Doganay, Onur Tanil and Klawonn, Alexander and Eigel, Martin and Gottschalk, Hanno},
-    year={2026}
+    year={2026},
+    booktitle={Under review},
     }
 
 
